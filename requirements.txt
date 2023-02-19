@@ -1,0 +1,8 @@
+google-api-python-client 
+google-auth-httplib2 
+google-auth-oauthlib
+pysimplegui~=4.60.4
+PyGithub~=1.57
+tomli~=2.0.1
+tomli_w
+dill
