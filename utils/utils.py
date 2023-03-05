@@ -3,15 +3,19 @@ import pickle
 import random
 import zipfile
 
-from config import DB_NAME, ProjectType
+from github import Github
+
+from config import DB_NAME, config
 
 import PySimpleGUI as sg
-
+from utils.projectType import ProjectType
+from pathlib import Path
+from google_drive.drive import drive_folder
 
 def check_folder_malformed(cfg):
     config = cfg.get_config()
     dirs = [config['ROOT_DIRECTORY']['main_dir']] + [v for k, v in config['SUB_DIRECTORY'].items() if k not in (
-        "GOOGLE_DRIVE_TOKEN", "GITHUB_TOKEN")]
+        "GOOGLE_DRIVE_TOKEN", "GITHUB_TOKEN")] if config else []
     for d in dirs:
         if not os.path.exists(d):
             return False
@@ -104,3 +108,15 @@ def __get_project(key):
     project_id = key.split("_")[1]
     project = records.get(project_id)
     return project
+
+def checkGithub():
+    if config and config.get_config("GITHUB_TOKEN"):
+        g = Github(os.getenv(config.get_config("GITHUB_TOKEN", "variable_name")))
+    else:
+        g = None
+    return g
+
+def checkDrive():
+    if Path(Path.cwd() / drive_folder / "credentials.json").exists():
+        return True
+    return False

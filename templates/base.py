@@ -9,12 +9,12 @@ from github import Github, GithubException
 
 from Exceptions.exceptions import GithubNotCreated, ProjectAlreadyCreated, RepoNotExists
 
-from utils.utils import get_random_id, delete_records, save_records, ProjectType
-import config
+from utils.utils import get_random_id, delete_records, save_records
+from utils.projectType import ProjectType
+from config import config
 
 
 class Base:
-    github = Github(os.getenv("github_token"))
     files_to_create = ["notes.txt", "progress.md", "requirements.txt"]  # Base implementation, mutate for subclass
 
     def __init__(self, folder_name: str, project_type: ProjectType, root_path):
@@ -63,17 +63,17 @@ class Base:
     def open_folder_in_pycharm(self):
         subprocess.run(["powershell.exe", "pycharm64.exe", f"{self.project_path}"])
 
-    def delete_project(self, db_name):
+    def delete_project(self, db_name, github_profile):
         if self.github_info:
-            self.delete_github()
+            self.delete_github(github_profile)
         shutil.rmtree(self.project_path, onerror=self.__remove_readonly)
         delete_records(db_name, self.id)
 
     # GitHub section
-    def delete_github(self):
+    def delete_github(self, github_profile):
         if self.github_info:
             try:
-                repo = self.github.get_user().get_repo(self.github_info.repo_name)
+                repo = github_profile.get_user().get_repo(self.github_info.repo_name)
                 print('deleting repo')
                 repo.delete()
                 self.github_info = None
@@ -81,8 +81,8 @@ class Base:
             except RepoNotExists:
                 pass
 
-    def create_github(self, repo_name, private=False):
-        user = self.github.get_user()
+    def create_github(self, repo_name, github_profile, private=False):
+        user = github_profile.get_user()
         try:
             repo = user.create_repo(
                 name=repo_name,

@@ -1,4 +1,5 @@
 import os.path
+from pathlib import Path
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -12,29 +13,29 @@ SCOPES = ["https://www.googleapis.com/auth/drive.file", "https://www.googleapis.
           "https://www.googleapis.com/auth/drive.metadata", "https://www.googleapis.com/auth/drive.readonly",
           "https://www.googleapis.com/auth/drive.metadata.readonly"]
 
-root_folder = "google_drive"
+drive_folder = "google_drive"
 
 def get_token(file="credentials.json"):
-    file_path = os.path.join(root_folder, file)
-    if not os.path.exists(os.path.join(root_folder, file)):
+    file_path = Path(drive_folder, file)
+    if not os.path.exists(os.path.join(drive_folder, file)):
         raise Exception(f"{file_path} doesn't exists!")
 
     cred = None
-    token_file_path = os.path.join(root_folder, "token.json")
-    if os.path.exists(token_file_path):
-        cred = Credentials.from_authorized_user_file(token_file_path, SCOPES)
+    token_file_path = Path(drive_folder, "token.json")
+    if token_file_path.exists():
+        cred = Credentials.from_authorized_user_file(str(token_file_path), SCOPES)
 
     if not cred or not cred.valid:
         if cred and cred.expired and cred.refresh_token:
             cred.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                file_path, SCOPES
+                str(file_path), SCOPES
             )
             cred = flow.run_local_server(port=0)
         with open(token_file_path, 'w') as file:
             file.write(cred.to_json())
-        return Credentials.from_authorized_user_file(token_file_path, SCOPES)
+        return Credentials.from_authorized_user_file(str(token_file_path), SCOPES)
 
     return cred
 
@@ -56,21 +57,5 @@ def upload_zip(file_path):
     except HttpError as error:
         print(F'An error occurred: {error}')
         return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
