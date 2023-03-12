@@ -1,0 +1,22 @@
+[GOOGLE_DRIVE_TOKEN]
+enable = true
+Last_Schedule = ""
+drive_zip_id = ""
+credential_path = "D:\\Programming Projects\\Projects-Manager\\google_drive\\credentials.json"
+
+[GITHUB_TOKEN]
+enable = false
+variable_name = ""
+
+[DB]
+DB_FILE_NAME = "db.pickle"
+
+[ROOT_DIRECTORY]
+main_dir = "D:\\Programming"
+
+[SUB_DIRECTORY]
+Coding_Problems = "D:\\Programming\\Coding_Problems"
+Fun_Personal = "D:\\Programming\\Fun_Personal"
+Learning = "D:\\Programming\\Learning"
+Progress = "D:\\Programming\\Progress"
+Professional_Projects = "D:\\Programming\\Professional_Projects"

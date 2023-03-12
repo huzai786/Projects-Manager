@@ -9,19 +9,15 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 
 
-SCOPES = ["https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive",
-          "https://www.googleapis.com/auth/drive.metadata", "https://www.googleapis.com/auth/drive.readonly",
-          "https://www.googleapis.com/auth/drive.metadata.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.readonly"]
 
 drive_folder = "google_drive"
 
-def get_token(file="credentials.json"):
-    file_path = Path(drive_folder, file)
-    if not os.path.exists(os.path.join(drive_folder, file)):
-        raise Exception(f"{file_path} doesn't exists!")
-
+def get_token(cred_path):
+    cred_path = Path(cred_path)
     cred = None
-    token_file_path = Path(drive_folder, "token.json")
+    token_file_path = Path(Path.cwd(), drive_folder, "token.json")
+
     if token_file_path.exists():
         cred = Credentials.from_authorized_user_file(str(token_file_path), SCOPES)
 
@@ -30,28 +26,27 @@ def get_token(file="credentials.json"):
             cred.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                str(file_path), SCOPES
+                str(cred_path), SCOPES
             )
             cred = flow.run_local_server(port=0)
         with open(token_file_path, 'w') as file:
             file.write(cred.to_json())
-        return Credentials.from_authorized_user_file(str(token_file_path), SCOPES)
+        return cred
 
     return cred
 
-
-def upload_zip(file_path):
-    cred = get_token()
-    name = os.path.basename(file_path)
-
+def upload_zip(zip_created_path, credential_path):
+    cred = get_token(credential_path)
+    zip_name = os.path.basename(zip_created_path)
     try:
-        service = build("drive", 'v3', cred)
-        file_metadata = {"name": name, "mimeType": "application/zip"}
-        media = MediaFileUpload(file_path, mimetype="application/zip", resumable=True)
+        service = build("drive", 'v3', credentials=cred)
 
-        file = service.files().create(body=file_metadata, media_body=media,
-                                      fields='id').execute()
-        print(f'File ID: {file.get("id")}')
+        file_metadata = {"name": zip_name, "mimeType": "application/zip"}
+        media = MediaFileUpload(zip_created_path, mimetype="application/zip", resumable=True)
+
+        file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        os.remove(zip_created_path)
+        print(F'File ID: {file.get("id")}')
         return file.get('id')
 
     except HttpError as error:

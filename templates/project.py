@@ -5,25 +5,22 @@ import subprocess
 import webbrowser
 from typing import NamedTuple
 
-from github import Github, GithubException
+from github import GithubException
 
-from Exceptions.exceptions import GithubNotCreated, ProjectAlreadyCreated, RepoNotExists
+from Exceptions.exceptions import GithubNotCreated, ProjectAlreadyCreated, RepoNotExists, GitHubNotSetup
 
-from utils.utils import get_random_id, delete_records, save_records
-from utils.projectType import ProjectType
+from templates.utils import get_random_id, delete_records, save_records
+from utils.project_type import ProjectType
 from config import config
 
-
-class Base:
-    files_to_create = ["notes.txt", "progress.md", "requirements.txt"]  # Base implementation, mutate for subclass
-
-    def __init__(self, folder_name: str, project_type: ProjectType, root_path):
+class Project:
+    def __init__(self, folder_name: str, project_type: ProjectType, root_path: str, files_to_create: list):
         self.project_type = project_type
         self.root_path = root_path
         self.folder_name = folder_name
         self.folder_name_path = "_".join([i for i in self.folder_name.split(" ")])
         self.project_path = self.__create_project(self.folder_name_path)
-        self.file_name = "main.py"
+        self.files = files_to_create
         self.github_info = None
         self.virtual_env = False
         self.__create_files()
@@ -51,11 +48,10 @@ class Base:
 
     # helper functions
     def __create_files(self):
-        files = self.files_to_create[:]
-        files.append(self.file_name)
-        for file in files:
-            path = os.path.join(self.project_path, file)
-            open(path, 'w').close()
+        if self.files and isinstance(self.files, list):
+            for file in self.files:
+                path = os.path.join(self.project_path, file)
+                open(path, 'w').close()
 
     def open_project_folder(self):
         subprocess.run(f"explorer {self.project_path}")
@@ -64,7 +60,9 @@ class Base:
         subprocess.run(["powershell.exe", "pycharm64.exe", f"{self.project_path}"])
 
     def delete_project(self, db_name, github_profile):
-        if self.github_info:
+        if self.github_info and not github_profile:
+            raise GitHubNotSetup()
+        else:
             self.delete_github(github_profile)
         shutil.rmtree(self.project_path, onerror=self.__remove_readonly)
         delete_records(db_name, self.id)
@@ -123,10 +121,24 @@ class Base:
         except subprocess.CalledProcessError as e:
             print(e)
 
+    def delete_env(self):
+        try:
+            if self.virtual_env:
+                bat_file = os.path.join('bin', 'delete_env.bat')
+                subprocess.run([f'{bat_file}', self.project_path[0], f"{self.project_path}"])
+                self.virtual_env = False
+            else:
+                pass
+
+        except subprocess.CalledProcessError as e:
+            print(e)
+
     def dump_to_drive(self):  # UNFINISHED
         """delete the folder from local drive, delete any GitHub linked to it, and dump it into the Google Drive in
         zip format."""
         # FIXIT: WILL ADD LATER
+        print('to be fixed!')
+
         pass
 
     def save_project(self, db_name):

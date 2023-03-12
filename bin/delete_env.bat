@@ -1,4 +1,4 @@
-echo "creating virtualenv"
+echo "deleting virtualenv"
 %1:
 cd %2
-virtualenv env
+call rm -r env
