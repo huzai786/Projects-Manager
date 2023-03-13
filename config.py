@@ -6,9 +6,9 @@ from pathlib import Path
 import tomli_w
 
 from github import Github, GithubException
+from enum import Enum
 
 from google_drive.drive import get_token, drive_folder
-from utils.project_type import ProjectType
 try:
     import tomllib
 except ModuleNotFoundError:
@@ -16,6 +16,8 @@ except ModuleNotFoundError:
 
 
 CONFIG_FILE_NAME = "config.toml"
+
+
 
 
 class Config:
@@ -144,10 +146,10 @@ class Config:
 
         return None
 
-    def check_drive(self):
-        path = self.get_config("GOOGLE_DRIVE_TOKEN", "credential_path")
-        if path and get_token(path):
-            return path
+    @staticmethod
+    def check_drive(cred_path):
+        if cred_path and get_token(cred_path):
+            return cred_path
         else:
             return False
 
@@ -167,6 +169,17 @@ class Config:
 
         self.update_config("", "GOOGLE_DRIVE_TOKEN", "credential_path")
         self.update_config(False, "GOOGLE_DRIVE_TOKEN", "enable")
+
+    def add_project_types(self, type_names):
+        fr = open(self.config_file_path, 'rb')
+        data = tomllib.load(fr)
+        fr.close()
+        with open(self.config_file_path, 'wb') as fw:
+            data['PROJECT_TYPE_NAMES'] = type_names
+            for tn in type_names:
+                data["SUB_DIRECTORY"][tn] = ""
+            tomli_w.dump(data, fw)
+
 
     @staticmethod
     def __token_validation(token):
@@ -191,12 +204,10 @@ if not Path(config.config_file_path).exists():
             "GITHUB_TOKEN": {"enable": False, "variable_name": ""},
             "DB": {"DB_FILE_NAME": Config.DB_NAME},
             "ROOT_DIRECTORY": {"main_dir": ""},
-            "SUB_DIRECTORY": {}
+            "SUB_DIRECTORY": {},
+            "PROJECT_TYPE_NAMES": ["type1", "type2", "type3", "type4", "typ5"]
         }
-        sub_folders = [ProjectType.Type1.value, ProjectType.Type2.value, ProjectType.Type3.value,
-                       ProjectType.Type4.value,
-                       ProjectType.Type5.value]
-        for sf in sub_folders:
-            cfg["SUB_DIRECTORY"][sf] = ""
         tomli_w.dump(cfg, f)
 
+types: list = config.get_config("PROJECT_TYPE_NAMES")
+ProjectType = Enum('ProjectType', {f"Type {i}": v for i, v in enumerate(types)})

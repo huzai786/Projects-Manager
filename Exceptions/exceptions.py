@@ -18,3 +18,6 @@ class GitHubNotSetup(Exception):
 
 class FolderNotExists(AttributeError):
     pass
+
+class ZipNotCreated(Exception):
+    pass

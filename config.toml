@@ -1,8 +1,14 @@
+PROJECT_TYPE_NAMES = [
+    "type1",
+    "type2",
+    "type3",
+    "type4",
+    "typ5",
+]
+
 [GOOGLE_DRIVE_TOKEN]
-enable = true
-Last_Schedule = ""
-drive_zip_id = ""
-credential_path = "D:\\Programming Projects\\Projects-Manager\\google_drive\\credentials.json"
+enable = false
+credential_path = ""
 
 [GITHUB_TOKEN]
 enable = false
@@ -12,11 +18,6 @@ variable_name = ""
 DB_FILE_NAME = "db.pickle"
 
 [ROOT_DIRECTORY]
-main_dir = "D:\\Programming"
+main_dir = ""
 
 [SUB_DIRECTORY]
-Coding_Problems = "D:\\Programming\\Coding_Problems"
-Fun_Personal = "D:\\Programming\\Fun_Personal"
-Learning = "D:\\Programming\\Learning"
-Progress = "D:\\Programming\\Progress"
-Professional_Projects = "D:\\Programming\\Professional_Projects"
